@@ -16,49 +16,29 @@
 </head>
 
 <body>
-	<div id="app">
-		<div id="start" class="container">
-			<form id="username-form">
-				<div class="mb-3">
-					<input type="text" id="username" class="form-control form-control-lg" required placeholder="Who art thou'?">
-				</div>
+	<main>
+		<div id="startPage">
+			<h1>Choose username</h1>
+			<form id="usernameForm" action="#">
+				<input type="text" name="username" id="username" placeholder="username">
+				<button type="submit">Start</button>
+			</form>
+		</div>
 
-				<div class="mb-3">
-					<select id="room" class="form-select">
-						<option value="general">General</option>
-						<option value="major">Major</option>
-						<option value="sergant">Sergant</option>
-					</select>
-				</div>
+		<div id="waitingForOpponent" class="hide">
+			<h1>Waiting</h1>
+		</div>
 
-				<button type="submit" class="btn btn-primary">Connect!</button>
-			</form><!-- /#username-form -->
-		</div><!-- /#start -->
+		<div id="game" class="hide">
+			<section id="board"></section>
+			<section id="score"></section>
+		</div>
 
-		<div id="chat-wrapper" class="hide">
-			<div id="chat">
-				<h2 id="chat-title">Chat</h2>
-				<div id="message-wrapper">
-					<!-- here is chat -->
-					<ul id="messages">
-					</ul><!-- /#messages -->
-				</div><!-- /#messages-wrapper -->
-
-				<form id="message-form">
-					<div class="input-group">
-						<input type="text" id="message" class="form-control" placeholder="Type something nice...">
-						<button type="submit" class="btn btn-success">Send</button>
-					</div>
-				</form>
-
-			</div><!-- /#chat -->
-
-			<div id="users">
-				<h2>Users</h2>
-				<ul id="online-users"></ul>
-			</div><!-- /#users -->
-		</div><!-- /#chat-wrapper -->
-	</div><!-- /#app -->
+		<div id="winnerStartOver" class="hide">
+			<div id="winner"></div>
+			<button>Play again</button>
+		</div>
+	</main>
 
 	<!-- Bootstrap 5 script -->
 	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>

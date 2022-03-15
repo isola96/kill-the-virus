@@ -23,5 +23,20 @@
   "devDependencies": {
     "cross-env": "^7.0.3",
     "nodemon": "^2.0.15"
-  }
+  },
+  "main": "app.js",
+  "bin": {
+    "07-chat": "bin/server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/isola96/kill-the-virus.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/isola96/kill-the-virus/issues"
+  },
+  "homepage": "https://github.com/isola96/kill-the-virus#readme",
+  "description": ""
 }

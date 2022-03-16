@@ -2,28 +2,12 @@
  * Socket Controller
  */
 
-const debug = require('debug')('chat:socket_controller');
+const debug = require('debug')('game:socket_controller');
 
 let io = null; // socket io server instance
 
 // list of rooms and their conntected users 
-const rooms = [
-	{
-		id: 'general',
-		name: 'General',
-		users: {},
-	},
-	{
-		id: 'major',
-		name: 'Major',
-		users: {},
-	},
-	{
-		id: 'sergant',
-		name: 'Sergant',
-		users: {},
-	}
-];
+const rooms = [];
 
 
 // Handle user disconnect
@@ -47,7 +31,7 @@ const handleDisconnect = function() {
 
 // Handle when a user joins the chat
 const handleUserJoined = function(username, room_id, callback) {
-	debug(`User ${username} with socket id ${this.id} wants to join room '${room_id}'`);
+	debug(`User ${username} with socket id ${this.id}`);
 
 	// join room
 	this.join(room_id);

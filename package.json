@@ -1,11 +1,11 @@
 {
-  "name": "07-chat",
+  "name": "game",
   "version": "0.1.0",
   "private": true,
   "scripts": {
     "start": "node ./bin/server.js",
-    "dev": "cross-env DEBUG=chat:* nodemon ./bin/server.js",
-    "debug": "cross-env DEBUG=chat:*,socket.io:client,socket.io:server nodemon --inspect ./bin/server.js"
+    "dev": "cross-env DEBUG=game:* nodemon ./bin/server.js",
+    "debug": "cross-env DEBUG=game:*,socket.io:client,socket.io:server nodemon --inspect ./bin/server.js"
   },
   "dependencies": {
     "bcrypt": "^5.0.1",

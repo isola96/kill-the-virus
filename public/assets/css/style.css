@@ -1,5 +1,5 @@
-#game {
-	display: flex;
+.hide {
+	display: none;
 }
 
 #board {

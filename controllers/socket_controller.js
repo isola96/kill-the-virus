@@ -38,7 +38,12 @@ const startGame = function (player1, player2) {
 module.exports = function(socket, _io) {
 	io = _io;
 
+<<<<<<< HEAD
 	socket.broadcast.emit('user:connected', socket.id);
+=======
+	// broadcast that a new user connected
+	socket.broadcast.emit('user:connected');
+>>>>>>> 9fdbad79e97100ee8a73715a18873510d9e6b9e4
 
 	debug('a new client has connected', socket.id);
 

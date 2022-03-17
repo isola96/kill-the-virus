@@ -12,12 +12,6 @@ let users = [];
 // let room = null;
 // let rounds = 0;
 
-/*
-socket.on('user:connected', () => {
-    console.log('someone connected') 
-});
-*/
-
 usernameForm.addEventListener('submit', e => {
     e.preventDefault();
 

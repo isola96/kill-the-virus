@@ -64,6 +64,9 @@ const handleChatMessage = function(message) {
 module.exports = function(socket, _io) {
 	io = _io;
 
+	// broadcast that a new user connected
+	socket.broadcast.emit('user:connected');
+
 	debug('a new client has connected', socket.id);
 
 	io.emit("new-connection", "A new user has connected")

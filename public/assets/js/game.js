@@ -4,11 +4,17 @@ const startPageEl = document.querySelector('#startPage');
 const usernameForm = document.querySelector('#usernameForm');
 const usernameInput = document.querySelector('#username');
 const waitingForOpponentEl = document.querySelector('#waitingForOpponent');
+const gameEl = document.querySelector('#game');
+
 
 let users = [];
 // let users = [{username: Elin, room: 1}, {username: Johanna, room: 1}, {username: Jooheon, room: 2}, {username: IM, room: 2}];
 // let room = null;
 // let rounds = 0;
+
+socket.on('user:connected', () => {
+    console.log('someone connected') 
+});
 
 usernameForm.addEventListener('submit', e => {
     e.preventDefault();
@@ -34,4 +40,14 @@ usernameForm.addEventListener('submit', e => {
     // toggle classlist
     startPageEl.classList.toggle('hide');
     waitingForOpponentEl.classList.toggle('hide');
+
+    // någon kod för att vänta på en till spelare
+    
+
+    // skicka prompt och fråga om spelare är redo
+    alert('Click ok to start game!');
+
+    gameEl.classList.toggle('hide');
+
+
 });

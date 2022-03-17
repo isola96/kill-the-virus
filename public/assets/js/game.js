@@ -12,9 +12,11 @@ let users = [];
 // let room = null;
 // let rounds = 0;
 
+/*
 socket.on('user:connected', () => {
     console.log('someone connected') 
 });
+*/
 
 usernameForm.addEventListener('submit', e => {
     e.preventDefault();
@@ -36,6 +38,11 @@ usernameForm.addEventListener('submit', e => {
 
     // tell server a user is ready to... wait
     // socket.on('user:joined',)
+
+    // tell server that another user has connected
+    socket.on('user:connected', () => {
+        console.log('someone connected') 
+    });
 
     // toggle classlist
     startPageEl.classList.toggle('hide');

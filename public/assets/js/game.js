@@ -6,19 +6,30 @@ const usernameInput = document.querySelector('#username');
 const waitingForOpponentEl = document.querySelector('#waitingForOpponent');
 
 let users = [];
+// let users = [{username: Elin, room: 1}, {username: Johanna, room: 1}, {username: Jooheon, room: 2}, {username: IM, room: 2}];
 // let room = null;
+// let rounds = 0;
 
 usernameForm.addEventListener('submit', e => {
     e.preventDefault();
 
+    const username = usernameInput.value;
+
     // if username-input is empty; return
-    if (!usernameInput.value) {
+    if (!username) {
 		return;
 	}
+    console.log('someone put username as: ', username);
 
-    // create a room for the player to wait for an opponent
+    users.push(username);   // skicka detta till servern? för att sparas hos andra också?
+    // socket.emit('user:waiting', username, )
 
-    console.log(usernameInput.value);
+    // see if there's a player waiting 
+    // create a new room for the player to wait in for an opponent
+
+
+    // tell server a user is ready to... wait
+    // socket.on('user:joined',)
 
     // toggle classlist
     startPageEl.classList.toggle('hide');

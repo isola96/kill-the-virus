@@ -6,7 +6,7 @@ const debug = require('debug')('game:socket_controller');
 
 let io = null; // socket io server instance
 
-// list of rooms and their conntected users 
+// list of rooms and their connected users 
 const rooms = [];
 
 

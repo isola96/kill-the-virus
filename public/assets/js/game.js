@@ -5,6 +5,7 @@ const usernameForm = document.querySelector('#usernameForm');
 const usernameInput = document.querySelector('#username');
 const waitingForOpponentEl = document.querySelector('#waitingForOpponent');
 const gameEl = document.querySelector('#game');
+const boardEl = document.querySelector('#board');
 
 
 let users = [];
@@ -15,6 +16,27 @@ let users = [];
 socket.on('user:connected', () => {
     console.log('someone connected') 
 });
+
+// get a random amout of seconds (between 0-10 seconds)
+const randomSeconds = () => {
+    return Math.floor(Math.random() * 10000);
+}
+
+// get a virus at a random position in random amout of time
+const getVirus = () => {
+    // get a random number between 0-8
+	let randomPosition = Math.floor(Math.random() * 9);
+	console.log(randomPosition+1);
+
+   // What is going to show in the box
+    let virusIcon = `<i class="fa-solid fa-viruses"></i>`;
+	setTimeout(function(){
+		// find div with id with the random number
+		const virus = document.querySelector(`#boardItem${randomPosition}`);
+		virus.innerHTML = virusIcon;
+    }, randomSeconds());
+}
+
 
 usernameForm.addEventListener('submit', e => {
     e.preventDefault();
@@ -48,6 +70,26 @@ usernameForm.addEventListener('submit', e => {
     alert('Click ok to start game!');
 
     gameEl.classList.toggle('hide');
+    waitingForOpponentEl.classList.toggle('hide');
+
+    getVirus();
+
+
+
+    boardEl.addEventListener('click', e => {
+        console.log('clicked on board, specific: ', e.target.tagName);
+    
+        if(e.target.tagName === 'I') {
+            // remove the virus-icon
+            e.target.remove();
+    
+            // get a new random position again
+            getVirus();
+            
+        }
+    
+    });
+
 
 
 });

@@ -17,13 +17,13 @@ const rooms = [
 		users: {}
 	}
 ];
-const waitingRoom = [];
+const usersInWaitingRoom = [];
 
 // a user joins the waiting room 
 const handleUserJoined = function(username, callback) {
 	debug(`User ${username} with socket id ${this.id} wants to join the waiting room`);
 
-	waitingRoom.push(username);
+	usersInWaitingRoom.push(username);
 
 	if (waitingRoom.length == 2) {
 	}
@@ -38,9 +38,29 @@ const startGame = function (player1, player2) {
 module.exports = function(socket, _io) {
 	io = _io;
 
-	socket.broadcast.emit('user:connected', socket.id);
+	// skickar till game.js, det jag skriver som parameter kommer att visa/ och skriva ut socket.id:t
+	// socket.broadcast.emit('user:connected', socket.id);
 
 	debug('a new client has connected', socket.id);
 
-	io.emit("new-connection", "A new user has connected")
+	io.emit("new-connection", "A new user has connected");
+
+	socket.emit('user:connected', socket.id);
+
+	// listen to client submitting username
+	socket.on('submit:username', (username) => {
+		console.log(username, 'joined waitingroom');
+		socket.broadcast.emit('user:joined', username, socket.id);
+
+	});
+
+	socket.on('users:waiting', (socketId) => {
+		socket.to(socketId).emit('opponent:true');
+	})
+
+	socket.on('user:ready', (socketId, msg) => {
+		socket.to(socketId).emit('opponent:ready', msg);
+	});
+
+
 }

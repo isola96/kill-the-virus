@@ -56,10 +56,6 @@ module.exports = function(socket, _io) {
 
 	socket.on('users:waiting', (socketId) => {
 		socket.to(socketId).emit('opponent:true');
-	})
-
-	socket.on('user:ready', (socketId, msg) => {
-		socket.to(socketId).emit('opponent:ready', msg);
 	});
 
 

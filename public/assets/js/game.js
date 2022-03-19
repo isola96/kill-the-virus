@@ -6,9 +6,12 @@ const usernameInput = document.querySelector('#username');
 const waitingForOpponentEl = document.querySelector('#waitingForOpponent');
 const gameEl = document.querySelector('#game');
 const boardEl = document.querySelector('#board');
+const winnerStartOverEl = document.querySelector('#winnerStartOver');
+const btnPlayAgain = document.querySelector('#btnPlayAgain');
+
 
 let ready = false;
-let users = [];
+let users = {};
 // let users = [{username: Elin, room: 1}, {username: Johanna, room: 1}, {username: Jooheon, room: 2}, {username: IM, room: 2}];
 // let room = null;
 // let rounds = 0;
@@ -36,95 +39,110 @@ const getVirus = () => {
 
 socket.on('user:connected', (userSocketId) => {
     console.log(userSocketId);
+});
 
-    usernameForm.addEventListener('submit', e => {
-        e.preventDefault();
-        const username = usernameInput.value;
+usernameForm.addEventListener('submit', e => {
+    e.preventDefault();
+    const username = usernameInput.value;
 
-        if (!username) {
-            return;
-        }
+    if (!username) {
+        return;
+    }
 
-        users.push(username);   // skicka detta till servern? för att sparas hos andra också?
+    users[socket.id] = username   // skicka detta till servern? för att sparas hos andra också?
 
-        // send username to server 
-        socket.emit('submit:username', username);
+    // send username to server 
+    socket.emit('submit:username', username);
 
-        // if username-input is empty; return
-        console.log('This user put username as: ', username);
+    // if username-input is empty; return
+    console.log('This user put username as: ', username);
 
+    
+    // socket.emit('user:waiting', users, )
+
+    // create a new room for the player to wait in for an opponent
+
+    // socket.on('user:joined',)
+
+    // toggle classlist
+    startPageEl.classList.toggle('hide');
+    waitingForOpponentEl.classList.toggle('hide');
+
+    // if someone is waiting send alert
+    // någon kod för att vänta på en till spelare
+    socket.on('user:joined', (username, socketId) => {
+
+        console.log(username, 'joined waitingroom and has id: ', socketId);
         
-        // socket.emit('user:waiting', users, )
-
-        // create a new room for the player to wait in for an opponent
-
-        // socket.on('user:joined',)
-
-        // toggle classlist
-        startPageEl.classList.toggle('hide');
-        waitingForOpponentEl.classList.toggle('hide');
-
-        // if someone is waiting send alert
-        // någon kod för att vänta på en till spelare
-        socket.on('user:joined', (username, socketId) => {
-
-            console.log(username, 'joined waitingroom and has id: ', socketId);
-            
-            users.push(socketId);
-            console.log(users);
-            
-
-            if(users.length === 2){
-                socket.emit('users:waiting', socketId);  
-                users = [];
-                alert('Click ok to start game!');
-                ready = true;
-                console.log('ready?', ready);
-                socket.emit('user:ready', socketId, 'first player ready');
-                
-            };
-
-            // if status for opponent ready= true, start game
-            
-        });
+        users[socketId] = username;
+        console.log(Object.keys(users)[1]);  // JJ id; second player
         
-        socket.on('opponent:true', ()=> {
-            console.log('There was an opponent for you waiting');
+
+        if(Object.keys(users).length === 2){
+            socket.emit('users:waiting', socketId);  
+            users = [];
             alert('Click ok to start game!');
             ready = true;
             console.log('ready?', ready);
+
+            waitingForOpponentEl.classList.toggle('hide');
+            gameEl.classList.toggle('hide');
             
-            // see if opponent is ready
-            socket.on('opponent:ready', (msg) => {
-                console.log(msg);
-            });
-        });
+            getVirus();
+        };
 
         
+    });
+    
+    socket.on('opponent:true', ()=> {
+        console.log('There was an opponent for you waiting');
+        alert('Click ok to start game!');
+        ready = true;
+        console.log('ready?', ready);
 
-        // waitingForOpponentEl.classList.toggle('hide');
-        // gameEl.classList.toggle('hide');
+        waitingForOpponentEl.classList.toggle('hide');
+        gameEl.classList.toggle('hide');
 
-        // getVirus();
+        getVirus();
 
-
-
-        boardEl.addEventListener('click', e => {
-            console.log('clicked on board, specific: ', e.target.tagName);
+        // see if opponent is ready
         
-            if(e.target.tagName === 'I') {
-                // remove the virus-icon
-                e.target.remove();
-        
-                // get a new random position again
-                getVirus();
-                
+    });
+
+    let rounds = 0;
+
+    boardEl.addEventListener('click', e => {
+        console.log('clicked on board, specific: ', e.target.tagName);
+    
+        if(e.target.tagName === 'I') {
+            rounds++;
+            console.log('rounds', rounds);
+
+            if(rounds === 10) {
+                // end game
+                gameEl.classList.toggle('hide');
+                winnerStartOverEl.classList.toggle('hide');
+
+                // skicka till servern att man är klar
             }
-        
-        });
+            // remove the virus-icon
+            e.target.remove();
+            
+    
+            // get a new random position again
+            getVirus();
+            
+        }
+    
+    });
 
-
+    btnPlayAgain.addEventListener('click', () => {
+        winnerStartOverEl.classList.toggle('hide');
+        startPageEl.classList.toggle('hide');
+        rounds = 0;
 
     });
 
+
 });
+

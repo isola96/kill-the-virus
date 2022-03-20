@@ -1,10 +1,11 @@
 const socket = io();
 
 const startPageEl = document.querySelector('#startPage');
+const gameEl = document.querySelector('#game');
+const waitingForOpponentEl = document.querySelector('#waitingForOpponent');
+const playersOnline = document.querySelector('#online-users');
 const usernameForm = document.querySelector('#usernameForm');
 const usernameInput = document.querySelector('#username');
-const waitingForOpponentEl = document.querySelector('#waitingForOpponent');
-const gameEl = document.querySelector('#game');
 const boardEl = document.querySelector('#board');
 const winnerStartOverEl = document.querySelector('#winnerStartOver');
 const btnPlayAgain = document.querySelector('#btnPlayAgain');
@@ -39,6 +40,7 @@ const getVirus = () => {
 
 socket.on('user:connected', (userSocketId) => {
     console.log(userSocketId);
+
 });
 
 usernameForm.addEventListener('submit', e => {
@@ -63,6 +65,7 @@ usernameForm.addEventListener('submit', e => {
     // create a new room for the player to wait in for an opponent
 
     // socket.on('user:joined',)
+
 
     // toggle classlist
     startPageEl.classList.toggle('hide');
@@ -146,4 +149,3 @@ usernameForm.addEventListener('submit', e => {
 
 
 });
-

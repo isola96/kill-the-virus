@@ -140,6 +140,7 @@ usernameForm.addEventListener('submit', e => {
         winnerStartOverEl.classList.toggle('hide');
         startPageEl.classList.toggle('hide');
         rounds = 0;
+        ready = false;
 
     });
 

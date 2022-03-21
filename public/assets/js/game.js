@@ -9,10 +9,16 @@ const usernameInput = document.querySelector('#username');
 const boardEl = document.querySelector('#board');
 const winnerStartOverEl = document.querySelector('#winnerStartOver');
 const btnPlayAgain = document.querySelector('#btnPlayAgain');
+const yourScoreEl = document.querySelector('#you');
 
 
 let ready = false;
 let users = {};
+let delay;
+let clickedTime;
+let reactionTime;
+let createdTime;
+// let startingGameTime;
 // let users = [{username: Elin, room: 1}, {username: Johanna, room: 1}, {username: Jooheon, room: 2}, {username: IM, room: 2}];
 // let room = null;
 // let rounds = 0;
@@ -20,7 +26,9 @@ let users = {};
 
 // get a random amout of seconds (between 0-10 seconds)
 const randomSeconds = () => {
-    return Math.floor(Math.random() * 10000);
+    delay = Math.floor(Math.random() * 10000);
+    console.log(delay);
+    return delay;
 }
 
 // get a virus at a random position in random amout of time
@@ -85,6 +93,8 @@ usernameForm.addEventListener('submit', e => {
             socket.emit('users:waiting', socketId);  
             users = [];
             alert('Click ok to start game!');
+            // startingGameTime = Date.now();
+            // console.log(startingGameTime);
             ready = true;
             console.log('ready?', ready);
 
@@ -116,6 +126,13 @@ usernameForm.addEventListener('submit', e => {
 
     boardEl.addEventListener('click', e => {
         console.log('clicked on board, specific: ', e.target.tagName);
+
+        // Get clicked time
+        clickedTime = Date.now();
+        console.log(clickedTime);
+        // Get in seconds 
+        reactionTime = (clickedTime - createdTime) / 1000;
+        document.querySelector('#youScore').innerText = reactionTime;
     
         if(e.target.tagName === 'I') {
             rounds++;
@@ -134,9 +151,10 @@ usernameForm.addEventListener('submit', e => {
     
             // get a new random position again
             getVirus();
+
+            createdTime = Date.now();
             
         }
-    
     });
 
     btnPlayAgain.addEventListener('click', () => {

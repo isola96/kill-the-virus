@@ -1,30 +1,33 @@
+// const { getRounds } = require("bcrypt");
+
 const socket = io();
 
 const startPageEl = document.querySelector('#startPage');
 const gameEl = document.querySelector('#game');
 const waitingForOpponentEl = document.querySelector('#waitingForOpponent');
-const playersOnline = document.querySelector('#online-users');
 const usernameForm = document.querySelector('#usernameForm');
 const usernameInput = document.querySelector('#username');
 const boardEl = document.querySelector('#board');
 const winnerStartOverEl = document.querySelector('#winnerStartOver');
 const btnPlayAgain = document.querySelector('#btnPlayAgain');
 const yourScoreEl = document.querySelector('#you');
+const opponentWaitingEl = document.querySelector('#opponentWaiting');
+const ulWaitingListEl = document.querySelector('#ulWaitingList');
 
-
-let ready = false;
-let users = {};
+let rounds = 0;
+let ready = [];
+let players = {};
 let delay;
 let clickedTime;
 let reactionTime;
 let createdTime;
-// let startingGameTime;
-// let users = [{username: Elin, room: 1}, {username: Johanna, room: 1}, {username: Jooheon, room: 2}, {username: IM, room: 2}];
-// let room = null;
-// let rounds = 0;
+
+let room = null;
+let username = null;
 
 
-// get a random amout of seconds (between 0-10 seconds)
+// get a random amout of seconds (between 0-10 seconds) 
+// måste skötas på server-sidan
 const randomSeconds = () => {
     delay = Math.floor(Math.random() * 10000);
     console.log(delay);
@@ -38,132 +41,138 @@ const getVirus = () => {
 	console.log(randomPosition+1);
 
    // What is going to show in the box
-    let virusIcon = `<i class="fa-solid fa-viruses"></i>`;
+    let virusIcon = `<i id="virus" class="fa-solid fa-viruses"></i>`;
 	setTimeout(function(){
 		// find div with id with the random number
 		const virus = document.querySelector(`#boardItem${randomPosition}`);
 		virus.innerHTML = virusIcon;
+
+        createdTime = Date.now();
+
     }, randomSeconds());
 }
 
-socket.on('user:connected', (userSocketId) => {
-    console.log(userSocketId);
 
+const addPlayerToWaitingList = text => {
+    const liEl = document.createElement('li');
+    liEl.innerText = text;
+
+    ulWaitingListEl.appendChild(liEl);
+};
+
+const updatePlayersList = players => {
+    ulWaitingListEl.innerHTML = Object.values(players).map(username => `<li>${username} is now waiting</li>`).join("");
+
+    if(Object.values(players).length === 2){
+        alert(`two players are waiting: ${Object.values(players)}, you ready?`);
+        // console.log(socket.id);
+        socket.emit('player:ready');
+
+    };
+};
+
+
+// listen for when a user disconnects
+socket.on('player:disconnected', (username) => {
+	console.log(`${username} disconnected 😢`);
+    alert(`${username} disconnected 😢`);
+
+    // reset variables and stuff
 });
 
-usernameForm.addEventListener('submit', e => {
-    e.preventDefault();
-    const username = usernameInput.value;
+// listen for when a new player connects to waitingroom
+socket.on('player:connected', (id) => {
+    console.log(id);
+    // addPlayerToWaitingList();
+});
 
-    if (!username) {
-        return;
-    }
+// listen for when we receive an updated list of online users (in this room)
+socket.on('player:list', players => {
+	updatePlayersList(players);
+});
 
-    users[socket.id] = username   // skicka detta till servern? för att sparas hos andra också?
-
-    // send username to server 
-    socket.emit('submit:username', username);
-
-    // if username-input is empty; return
-    console.log('This user put username as: ', username);
-
-    
-    // socket.emit('user:waiting', users, )
-
-    // create a new room for the player to wait in for an opponent
-
-    // socket.on('user:joined',)
-
-
-    // toggle classlist
-    startPageEl.classList.toggle('hide');
+socket.on('start:game', () => {
+    console.log('gonna start the game');
+    // show game 
     waitingForOpponentEl.classList.toggle('hide');
+    gameEl.classList.toggle('hide');
 
-    // if someone is waiting send alert
-    // någon kod för att vänta på en till spelare
-    socket.on('user:joined', (username, socketId) => {
-
-        console.log(username, 'joined waitingroom and has id: ', socketId);
-        
-        users[socketId] = username;
-        console.log(Object.keys(users)[1]);  // JJ id; second player
-        
-
-        if(Object.keys(users).length === 2){
-            socket.emit('users:waiting', socketId);  
-            users = [];
-            alert('Click ok to start game!');
-            // startingGameTime = Date.now();
-            // console.log(startingGameTime);
-            ready = true;
-            console.log('ready?', ready);
-
-            waitingForOpponentEl.classList.toggle('hide');
-            gameEl.classList.toggle('hide');
-            
-            getVirus();
-        };
-
-        
-    });
     
-    socket.on('opponent:true', ()=> {
-        console.log('There was an opponent for you waiting');
-        alert('Click ok to start game!');
-        ready = true;
-        console.log('ready?', ready);
+    // get virus going
+    getVirus();
 
-        waitingForOpponentEl.classList.toggle('hide');
-        gameEl.classList.toggle('hide');
-
-        getVirus();
-
-        // see if opponent is ready
+    // listen for opponent's clicks
+    socket.on('opponent:reaction', (oppReac)=> {
+        document.querySelector('#player2Score').innerText = oppReac;
         
+        // check who was faster, glöm inte att tänka på rounds!
+        if (oppReac > reactionTime) {
+            console.log('I was faster');
+        }
     });
 
-    let rounds = 0;
-
-    boardEl.addEventListener('click', e => {
-        console.log('clicked on board, specific: ', e.target.tagName);
-
-        // Get clicked time
+    boardEl.addEventListener('click', (e) => {
+        // Time when clicked
         clickedTime = Date.now();
         console.log(clickedTime);
         // Get in seconds 
         reactionTime = (clickedTime - createdTime) / 1000;
         document.querySelector('#youScore').innerText = reactionTime;
-    
+
         if(e.target.tagName === 'I') {
             rounds++;
-            console.log('rounds', rounds);
+            e.target.remove();
 
-            if(rounds === 10) {
-                // end game
+            // send reaktionTime to server
+            socket.emit('opponent:clicked', reactionTime);
+
+            if(rounds === 3) {
+                // end game 
+                alert('Game over! Winner is: ');
                 gameEl.classList.toggle('hide');
                 winnerStartOverEl.classList.toggle('hide');
+            };
 
-                // skicka till servern att man är klar
-            }
-            // remove the virus-icon
-            e.target.remove();
-            
-    
-            // get a new random position again
             getVirus();
 
-            createdTime = Date.now();
-            
+
+        };
+
+        
+    });
+
+});
+
+
+usernameForm.addEventListener('submit', e => {
+    e.preventDefault();
+    username = usernameInput.value;
+
+    if (!username) {
+        return;
+    }
+
+    console.log(`${username} is on waiting-page`);
+
+    socket.emit('player:joined', username, (status) => {
+        console.log('Server acknowledged that user joined', status);
+
+        if(status.success) {
+            // show waiting-page
+            startPageEl.classList.toggle('hide');
+            waitingForOpponentEl.classList.toggle('hide');
+
+            // update list of users in room
+			updatePlayersList(status.players);
+
         }
-    });
 
-    btnPlayAgain.addEventListener('click', () => {
-        winnerStartOverEl.classList.toggle('hide');
-        startPageEl.classList.toggle('hide');
-        rounds = 0;
-        ready = false;
+    });   
 
-    });
+});
 
-
+btnPlayAgain.addEventListener('click', () => {
+    winnerStartOverEl.classList.toggle('hide');
+    startPageEl.classList.toggle('hide');
+    rounds = 0;
 });

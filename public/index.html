@@ -20,7 +20,7 @@
 
 <body>
 	<main>
-		<div id="startPage">
+		<div id="startPage" class="flex">
 			<h1>Choose username</h1>
 			<form id="usernameForm" action="#">
 				<input type="text" name="username" id="username" placeholder="username">
@@ -28,7 +28,7 @@
 			</form>
 		</div>
 
-		<div id="waitingForOpponent" class="hide">
+		<div id="waitingForOpponent" class="hide flex">
 			<h1>Waiting</h1>
 			<div id="opponentWaiting">
 				<ul id="ulWaitingList"></ul>
@@ -56,14 +56,10 @@
 					<h3>You</h3>
 					<p id="youScore"></p>
 				</div>
-				<div id="player2">
-					<h3>Player2</h3>
-					<p id="player2Score"></p>
-				</div>
 			</section>
 		</div>
 
-		<div id="winnerStartOver" class="hide">
+		<div id="winnerStartOver" class="hide flex">
 			<div id="winner"></div>
 			<button id="btnPlayAgain">Play again</button>
 		</div>

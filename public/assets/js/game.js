@@ -1,5 +1,3 @@
-// const { getRounds } = require("bcrypt");
-
 const socket = io();
 
 const startPageEl = document.querySelector('#startPage');
@@ -13,8 +11,11 @@ const btnPlayAgain = document.querySelector('#btnPlayAgain');
 const yourScoreEl = document.querySelector('#you');
 const opponentWaitingEl = document.querySelector('#opponentWaiting');
 const ulWaitingListEl = document.querySelector('#ulWaitingList');
+const youPointsEl = document.querySelector('#youPoints');
+const player2PointsEl = document.querySelector('#player2Points');
+const player2ScoreEl = document.querySelector('#player2Score');
+const youScoreEl = document.querySelector('#youScore');
 
-let rounds = 0;
 let ready = [];
 let players = {};
 let delay;
@@ -25,33 +26,23 @@ let createdTime;
 let room = null;
 let username = null;
 
+let getVirus;
+let myPoints = 0;
+let opponentPoints = 0;
 
-// get a random amout of seconds (between 0-10 seconds) 
-// måste skötas på server-sidan
-const randomSeconds = () => {
-    delay = Math.floor(Math.random() * 10000);
-    console.log(delay);
-    return delay;
+const resetting = () => {
+ready = [];
+players = {};
+delay;
+clickedTime;
+reactionTime;
+createdTime;
+room = null;
+username = null;
+getVirus;
+myPoints = 0;
+opponentPoints = 0;
 }
-
-// get a virus at a random position in random amout of time
-const getVirus = () => {
-    // get a random number between 0-8
-	let randomPosition = Math.floor(Math.random() * 9);
-	console.log(randomPosition+1);
-
-   // What is going to show in the box
-    let virusIcon = `<i id="virus" class="fa-solid fa-viruses"></i>`;
-	setTimeout(function(){
-		// find div with id with the random number
-		const virus = document.querySelector(`#boardItem${randomPosition}`);
-		virus.innerHTML = virusIcon;
-
-        createdTime = Date.now();
-
-    }, randomSeconds());
-}
-
 
 const addPlayerToWaitingList = text => {
     const liEl = document.createElement('li');
@@ -78,6 +69,7 @@ socket.on('player:disconnected', (username) => {
     alert(`${username} disconnected 😢`);
 
     // reset variables and stuff
+    resetting();
 });
 
 // listen for when a new player connects to waitingroom
@@ -97,52 +89,37 @@ socket.on('start:game', () => {
     waitingForOpponentEl.classList.toggle('hide');
     gameEl.classList.toggle('hide');
 
-    
     // get virus going
-    getVirus();
-
-    // listen for opponent's clicks
-    socket.on('opponent:reaction', (oppReac)=> {
-        document.querySelector('#player2Score').innerText = oppReac;
+    socket.on('get:virus', (delay) => {
+        getVirus = () => {
+            // get a random number between 0-8
+            let randomPosition = Math.floor(Math.random() * 9);
+            console.log(randomPosition+1);
         
-        // check who was faster, glöm inte att tänka på rounds!
-        if (oppReac > reactionTime) {
-            console.log('I was faster');
+           // What is going to show in the box
+            let virusIcon = `<i id="virus" class="fa-solid fa-viruses"></i>`;
+            setTimeout(function(){
+                // find div with id with the random number
+                const virus = document.querySelector(`#boardItem${randomPosition}`);
+                virus.innerHTML = virusIcon;
+        
+                createdTime = Date.now();
+        
+            }, delay);
         }
+        getVirus();
     });
-
+    
     boardEl.addEventListener('click', (e) => {
-        // Time when clicked
-        clickedTime = Date.now();
-        console.log(clickedTime);
-        // Get in seconds 
-        reactionTime = (clickedTime - createdTime) / 1000;
-        document.querySelector('#youScore').innerText = reactionTime;
-
+        
         if(e.target.tagName === 'I') {
-            rounds++;
+            clickedTime = Date.now();
+            socket.emit('clicked:on:virus', createdTime, clickedTime);
             e.target.remove();
 
-            // send reaktionTime to server
-            socket.emit('opponent:clicked', reactionTime);
-
-            if(rounds === 3) {
-                // end game 
-                alert('Game over! Winner is: ');
-                gameEl.classList.toggle('hide');
-                winnerStartOverEl.classList.toggle('hide');
-            };
-
-            getVirus();
-
-
         };
-
-        
     });
-
 });
-
 
 usernameForm.addEventListener('submit', e => {
     e.preventDefault();
@@ -155,7 +132,7 @@ usernameForm.addEventListener('submit', e => {
     console.log(`${username} is on waiting-page`);
 
     socket.emit('player:joined', username, (status) => {
-        console.log('Server acknowledged that user joined', status);
+        // console.log('Server acknowledged that user joined', status);
 
         if(status.success) {
             // show waiting-page
@@ -174,5 +151,63 @@ usernameForm.addEventListener('submit', e => {
 btnPlayAgain.addEventListener('click', () => {
     winnerStartOverEl.classList.toggle('hide');
     startPageEl.classList.toggle('hide');
-    rounds = 0;
+});
+
+socket.on('first:both:have:clicked:on:virus', (ownP, oppP, firstReactionTime, secondReactionTime) => {
+    // show points
+    youPointsEl.innerText = ownP;
+    player2PointsEl.innerText = oppP;
+    youScoreEl.innerText = secondReactionTime;
+    player2ScoreEl.innerText = firstReactionTime;
+
+    
+    socket.emit('sending:back:points', ownP, oppP, firstReactionTime, secondReactionTime);
+
+});
+
+socket.on('second:both:have:clicked:on:virus', (oppP, ownP, firstReactionTime, secondReactionTime) => {
+    // show points
+    youPointsEl.innerText = ownP;
+    player2PointsEl.innerText = oppP;
+    youScoreEl.innerText = firstReactionTime;
+    player2ScoreEl.innerText = secondReactionTime;
+    socket.emit('both:points:updated');
+});
+
+socket.on('points:updated:and:done', () => {
+    getVirus();
+});
+
+socket.on('a:tie', () => {
+    alert('Game over! It was a tie');
+    gameEl.classList.add('hide');
+    winnerStartOverEl.classList.remove('hide');
+});
+
+socket.on('i:won', () => {
+    alert('You won!');
+    gameEl.classList.add('hide');
+    winnerStartOverEl.classList.remove('hide');
+});
+
+socket.on('you:lost', () => {
+    alert('You lost!');
+    gameEl.classList.add('hide');
+    winnerStartOverEl.classList.remove('hide');
+    resetting();
+});
+
+socket.on('i:lost', () => {
+    alert('You lost!');
+    gameEl.classList.add('hide');
+    winnerStartOverEl.classList.remove('hide');
+    resetting();
+
+});
+
+socket.on('you:won', () => {
+    alert('You won!');
+    gameEl.classList.add('hide');
+    winnerStartOverEl.classList.remove('hide');
+    resetting();
 });

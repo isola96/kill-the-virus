@@ -24,6 +24,9 @@
     "cross-env": "^7.0.3",
     "nodemon": "^2.0.15"
   },
+  "engines": {
+    "node": "16.x"
+  },
   "main": "app.js",
   "bin": {
     "07-chat": "bin/server.js"

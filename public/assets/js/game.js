@@ -28,9 +28,25 @@ let createdTime;
 let room = null;
 let username = null;
 
-let getVirus;
 let myPoints = 0;
 let opponentPoints = 0;
+
+const getVirus = (d, rp) => {
+    console.log('delay: ', d);
+    console.log('position: ', rp);
+    // get a random number between 0-8
+    // let randomPosition = Math.floor(Math.random() * 9);
+
+   // What is going to show in the box
+    let virusIcon = `<i id="virus" class="fa-solid fa-viruses"></i>`;
+    setTimeout(function(){
+        // find div with id with the random number
+        const virus = document.querySelector(`#boardItem${rp}`);
+        virus.innerHTML = virusIcon;
+
+        createdTime = Date.now();
+    }, d);
+}
 
 const resetting = () => {
     ready = [];
@@ -105,26 +121,12 @@ socket.on('start:game', (playerUsernames) => {
     }
     player2UsernameEl.innerText = opponentUsername;
 
-    // TODO: sätt in användarnamnen i spelet
     // TODO: viruset ska hamna på samma plats för båda spelare
 
     // get virus going
-    socket.on('get:virus', (delay) => {
-        getVirus = () => {
-            // get a random number between 0-8
-            let randomPosition = Math.floor(Math.random() * 9);
+    socket.on('get:virus', (delay, randomPosition) => {
         
-           // What is going to show in the box
-            let virusIcon = `<i id="virus" class="fa-solid fa-viruses"></i>`;
-            setTimeout(function(){
-                // find div with id with the random number
-                const virus = document.querySelector(`#boardItem${randomPosition}`);
-                virus.innerHTML = virusIcon;
-        
-                createdTime = Date.now();
-            }, delay);
-        }
-        getVirus();
+        getVirus(delay, randomPosition);
     });
     
     boardEl.addEventListener('click', (e) => {
@@ -185,8 +187,8 @@ socket.on('second:both:have:clicked:on:virus', (oppP, ownP, firstReactionTime, s
 
 });
 
-socket.on('points:updated:and:done', () => {
-    getVirus();
+socket.on('points:updated:and:done', (delay, randomPosition) => {
+    getVirus(delay, randomPosition);
 });
 
 socket.on('a:tie', () => {

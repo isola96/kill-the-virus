@@ -26,6 +26,7 @@
  let whoWasFastestEachRound = [];
  // let rounds = 0;
  let delay;
+ let randomPosition
  
  let newObject = {};
  let newTimeObj = {};
@@ -62,8 +63,13 @@
 	 console.log(delay);
 	 return delay;
  }
+  randomSeconds();
 
- randomSeconds();
+ let getRandomPosition = () => {
+	randomPosition = Math.floor(Math.random() * 9)
+	return randomPosition
+	};
+  getRandomPosition();
  
  const getAllIndexes = (arr, val) => {
 	 let indexes = [];
@@ -180,9 +186,13 @@
 			const playerUsernames = playRooms[findPlayersRoom(playRooms, socket.id)].players;
 			console.log(playerUsernames);
 
+			randomSeconds();
+			getRandomPosition();
+
 			// emit to clients in the room - start the game and hide waiting-page
 			io.to(playRooms[findPlayersRoom(playRooms, socket.id)].id).emit('start:game', playerUsernames);
-			io.to(playRooms[findPlayersRoom(playRooms, socket.id)].id).emit('get:virus', delay);
+			TODO:
+			io.to(playRooms[findPlayersRoom(playRooms, socket.id)].id).emit('get:virus', delay, randomPosition);
 		 };
 	 });
  
@@ -281,8 +291,11 @@
        
 			 // roomIndex.players = {};
 		 };
+
+		 randomSeconds();
+		 getRandomPosition();
  
-		 io.to(playRooms[findPlayersRoom(playRooms, socket.id)].id).emit('points:updated:and:done');
+		 io.to(playRooms[findPlayersRoom(playRooms, socket.id)].id).emit('points:updated:and:done', delay, randomPosition);
 	 });
  
 	 socket.on('player:done', () => {

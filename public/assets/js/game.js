@@ -32,12 +32,6 @@ let myPoints = 0;
 let opponentPoints = 0;
 
 const getVirus = (d, rp) => {
-    console.log('delay: ', d);
-    console.log('position: ', rp);
-    // get a random number between 0-8
-    // let randomPosition = Math.floor(Math.random() * 9);
-
-   // What is going to show in the box
     let virusIcon = `<i id="virus" class="fa-solid fa-viruses"></i>`;
     setTimeout(function(){
         // find div with id with the random number
@@ -73,25 +67,16 @@ const addPlayerToWaitingList = text => {
 const updatePlayersList = players => {
     ulWaitingListEl.innerHTML = Object.values(players).map(username => `<li>${username} is now waiting</li>`).join("");
 
-    // TODO: detta borde ske i servern?
     if(Object.values(players).length === 2){
         alert(`You have an opponent, click ok to start game`);
-        // console.log(socket.id);
         socket.emit('player:ready');
     };
 };
 
-// TODO: kolla om location.reload funkar när någon disconnect:ar
 // listen for when a user disconnects
 socket.on('player:disconnected', (username) => {
-	console.log(`${username} disconnected 😢`);
     alert(`${username} disconnected 😢`);
     location.reload()
-
-    // gameEl.classList.add('hide');
-    // // waitingForOpponentEl.classList.remove('hide');
-    // startPageEl.classList.remove('hide');
-
 
     // reset variables and stuff
     resetting();
@@ -102,14 +87,12 @@ socket.on('player:connected', (id) => {
     console.log(id);
 });
 
-// TODO: player:list
 // listen for when we receive an updated list of online users (in this room)
 socket.on('player:list', players => {
 	updatePlayersList(players);
 });
 
 socket.on('start:game', (playerUsernames) => {
-    // console.log('gonna start the game');
     // show game 
     waitingForOpponentEl.classList.toggle('hide');
     gameEl.classList.toggle('hide');
@@ -121,11 +104,8 @@ socket.on('start:game', (playerUsernames) => {
     }
     player2UsernameEl.innerText = opponentUsername;
 
-    // TODO: viruset ska hamna på samma plats för båda spelare
-
     // get virus going
     socket.on('get:virus', (delay, randomPosition) => {
-        
         getVirus(delay, randomPosition);
     });
     
@@ -165,7 +145,6 @@ btnPlayAgain.addEventListener('click', () => {
 });
 
 socket.on('first:both:have:clicked:on:virus', (ownP, oppP, firstReactionTime, secondReactionTime, fastestPlayer) => {
-    // console.log('listening to first:both:have:clicked:on:virus');
     // show points
     youPointsEl.innerText = ownP;
     player2PointsEl.innerText = oppP;
@@ -177,7 +156,6 @@ socket.on('first:both:have:clicked:on:virus', (ownP, oppP, firstReactionTime, se
 });
 
 socket.on('second:both:have:clicked:on:virus', (oppP, ownP, firstReactionTime, secondReactionTime) => {
-    // console.log('listening to second:both:have:clicked:on:virus');
     // show points
     youPointsEl.innerText = ownP;
     player2PointsEl.innerText = oppP;
@@ -194,32 +172,24 @@ socket.on('points:updated:and:done', (delay, randomPosition) => {
 socket.on('a:tie', () => {
     alert('Game over! It was a tie');
     location.reload();
-    // gameEl.classList.add('hide');
-    // winnerStartOverEl.classList.remove('hide');
     resetting();
 });
 
 socket.on('i:won', () => {
     alert('You won!');
     location.reload();
-    // gameEl.classList.add('hide');
-    // winnerStartOverEl.classList.remove('hide');
     resetting();
 });
 
 socket.on('you:lost', () => {
     alert('You lost!');
     location.reload();
-    // gameEl.classList.add('hide');
-    // winnerStartOverEl.classList.remove('hide');
     resetting();
 });
 
 socket.on('i:lost', () => {
     alert('You lost!');
     location.reload();
-    // gameEl.classList.add('hide');
-    // winnerStartOverEl.classList.remove('hide');
     resetting();
 
 });
@@ -227,7 +197,5 @@ socket.on('i:lost', () => {
 socket.on('you:won', () => {
     alert('You won!');
     location.reload();
-    // gameEl.classList.add('hide');
-    // winnerStartOverEl.classList.remove('hide');
     resetting();
 });

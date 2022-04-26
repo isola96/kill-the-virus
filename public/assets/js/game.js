@@ -31,21 +31,22 @@ let myPoints = 0;
 let opponentPoints = 0;
 
 const resetting = () => {
-ready = [];
-players = {};
-delay;
-clickedTime;
-reactionTime;
-createdTime;
-room = null;
-username = null;
-getVirus;
-myPoints = 0;
-opponentPoints = 0;
+    ready = [];
+    players = {};
+    delay;
+    clickedTime;
+    reactionTime;
+    createdTime;
+    room = null;
+    username = null;
+    getVirus;
+    myPoints = 0;
+    opponentPoints = 0;
 }
 
 const addPlayerToWaitingList = text => {
     const liEl = document.createElement('li');
+
     liEl.innerText = text;
 
     ulWaitingListEl.appendChild(liEl);
@@ -59,7 +60,6 @@ const updatePlayersList = players => {
         alert(`You have an opponent, click ok to start game`);
         // console.log(socket.id);
         socket.emit('player:ready');
-
     };
 };
 
@@ -73,6 +73,7 @@ socket.on('player:disconnected', (username) => {
     // gameEl.classList.add('hide');
     // // waitingForOpponentEl.classList.remove('hide');
     // startPageEl.classList.remove('hide');
+
 
     // reset variables and stuff
     resetting();
@@ -103,7 +104,6 @@ socket.on('start:game', () => {
         getVirus = () => {
             // get a random number between 0-8
             let randomPosition = Math.floor(Math.random() * 9);
-            console.log(randomPosition+1);
         
            // What is going to show in the box
             let virusIcon = `<i id="virus" class="fa-solid fa-viruses"></i>`;
@@ -113,36 +113,30 @@ socket.on('start:game', () => {
                 virus.innerHTML = virusIcon;
         
                 createdTime = Date.now();
-        
             }, delay);
         }
         getVirus();
     });
     
     boardEl.addEventListener('click', (e) => {
-        
         if(e.target.tagName === 'I') {
             clickedTime = Date.now();
             socket.emit('clicked:on:virus', createdTime, clickedTime);
             e.target.remove();
-
         };
     });
 });
 
 usernameForm.addEventListener('submit', e => {
     e.preventDefault();
+
     username = usernameInput.value;
 
     if (!username) {
         return;
     }
 
-    console.log(`${username} is on waiting-page`);
-
     socket.emit('player:joined', username, (status) => {
-        // console.log('Server acknowledged that user joined', status);
-
         if(status.success) {
             // show waiting-page
             startPageEl.classList.toggle('hide');
@@ -150,11 +144,8 @@ usernameForm.addEventListener('submit', e => {
 
             // update list of users in room
 			updatePlayersList(status.players);
-
         }
-
     });   
-
 });
 
 btnPlayAgain.addEventListener('click', () => {
@@ -169,7 +160,6 @@ socket.on('first:both:have:clicked:on:virus', (ownP, oppP, firstReactionTime, se
     player2PointsEl.innerText = oppP;
     youScoreEl.innerText = secondReactionTime;
     player2ScoreEl.innerText = firstReactionTime;
-
     
     socket.emit('sending:back:points', ownP, oppP, firstReactionTime, secondReactionTime, fastestPlayer);
 
@@ -183,6 +173,7 @@ socket.on('second:both:have:clicked:on:virus', (oppP, ownP, firstReactionTime, s
     youScoreEl.innerText = firstReactionTime;
     player2ScoreEl.innerText = secondReactionTime;
     socket.emit('both:points:updated', ownP);
+
 });
 
 socket.on('points:updated:and:done', () => {

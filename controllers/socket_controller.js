@@ -1,6 +1,6 @@
 /**
- * Socket Controller
- */
+* Socket Controller
+*/
 
  const debug = require('debug')('game:socket_controller');
 
@@ -62,6 +62,7 @@
 	 console.log(delay);
 	 return delay;
  }
+
  randomSeconds();
  
  const getAllIndexes = (arr, val) => {
@@ -132,7 +133,7 @@
 	 }
 	 
 	 debug(`User ${username} with socket id ${this.id} joins room '${playRooms[index].id}'`);
-	 
+
 	 // join room
 	 this.join(playRooms[index].id);
 	 
@@ -151,6 +152,7 @@
 	 });
 	 
 	 // broadcast list of users in room to all connected sockets EXCEPT ourselves
+   
 	 this.broadcast.to(playRooms[findPlayersRoom(playRooms, this.id)].id).emit('player:list', playRooms[findPlayersRoom(playRooms, this.id)].players);
  
  };
@@ -174,9 +176,8 @@
 		 ready.push(socket.id);
 		 
 		 if(ready.length === 2) {
-			 console.log('both are now ready');
 			 ready = [];
-			 // console.log(ready);
+
 			 // emit to clients in the room - start the game and hide waiting-page
 			 io.to(playRooms[findPlayersRoom(playRooms, socket.id)].id).emit('start:game');
 			 io.to(playRooms[findPlayersRoom(playRooms, socket.id)].id).emit('get:virus', delay);
@@ -274,8 +275,8 @@
 				 debug('after deleting the room they were in', playRooms);
 				 return
 			 }
-			 
 			 resetting();
+       
 			 // roomIndex.players = {};
 		 };
  

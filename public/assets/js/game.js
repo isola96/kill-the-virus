@@ -15,6 +15,8 @@ const youPointsEl = document.querySelector('#youPoints');
 const player2PointsEl = document.querySelector('#player2Points');
 const player2ScoreEl = document.querySelector('#player2Score');
 const youScoreEl = document.querySelector('#youScore');
+const youUsernameEl = document.querySelector('#youUsername')
+const player2UsernameEl = document.querySelector('#player2Username')
 
 let ready = [];
 let players = {};
@@ -90,11 +92,18 @@ socket.on('player:list', players => {
 	updatePlayersList(players);
 });
 
-socket.on('start:game', () => {
+socket.on('start:game', (playerUsernames) => {
     // console.log('gonna start the game');
     // show game 
     waitingForOpponentEl.classList.toggle('hide');
     gameEl.classList.toggle('hide');
+    youUsernameEl.innerText = username;
+    const usernamesArray = Object.values(playerUsernames)
+    let opponentUsername = usernamesArray.find(a => a !== username);
+    if (!opponentUsername) {
+        opponentUsername = username
+    }
+    player2UsernameEl.innerText = opponentUsername;
 
     // TODO: sätt in användarnamnen i spelet
     // TODO: viruset ska hamna på samma plats för båda spelare

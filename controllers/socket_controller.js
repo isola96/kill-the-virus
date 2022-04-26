@@ -176,11 +176,13 @@
 		 ready.push(socket.id);
 		 
 		 if(ready.length === 2) {
-			 ready = [];
+			ready = [];
+			const playerUsernames = playRooms[findPlayersRoom(playRooms, socket.id)].players;
+			console.log(playerUsernames);
 
-			 // emit to clients in the room - start the game and hide waiting-page
-			 io.to(playRooms[findPlayersRoom(playRooms, socket.id)].id).emit('start:game');
-			 io.to(playRooms[findPlayersRoom(playRooms, socket.id)].id).emit('get:virus', delay);
+			// emit to clients in the room - start the game and hide waiting-page
+			io.to(playRooms[findPlayersRoom(playRooms, socket.id)].id).emit('start:game', playerUsernames);
+			io.to(playRooms[findPlayersRoom(playRooms, socket.id)].id).emit('get:virus', delay);
 		 };
 	 });
  

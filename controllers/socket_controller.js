@@ -7,32 +7,54 @@
  let io = null; // socket io server instance
  
  // list of rooms and their connected users 
- const playRooms = [
+ let playRooms = [
 	 {
 		 id: 'roomId',
-		 name: 'roomName',
 		 players: {},
+		 time: [],
+		 points: [],
+		 rounds: 0,
 	 }
  ];
  
- let ownPoints;
- let opponentPoints;
+ const maxRounds = 4;
+ let ownPoints = 0;
+ let opponentPoints = 0;
  let ready = [];
  let playersDone = [];
  let ReacTimeObj = {};
  let whoWasFastestEachRound = [];
- let rounds = 0;
+ // let rounds = 0;
  let delay;
  
+ let newObject = {};
+ let newTimeObj = {};
+ let slowestTime;
+ let fastestTime;
+ let fastestPlayer;
+ let slowestPlayer;
+ 
+ const findPlayersRoom = function(arr, clientId) {
+ for(let i=0; i< arr.length; i++) {
+	 let [first, second] = Object.keys(arr[i].players);
+	 if( first === clientId || second === clientId ){
+		 return i;
+	 }
+ }
+ };
+ 
  const resetting = ()=> {
-	 ownPoints;
-	 opponentPoints;
+	 ownPoints= 0;
+	 opponentPoints = 0;
 	 ready = [];
 	 playersDone = [];
 	 ReacTimeObj = {};
 	 whoWasFastestEachRound = [];
-	 rounds = 0;
+	 // rounds = 0;
 	 delay;
+	 newTimeObj = {};
+ 
+	 // send something to players and then delete room
  }
  
  const randomSeconds = () => {
@@ -53,9 +75,10 @@
  }
  
  const handleDisconnect = function() {
-	 ownPoints;
-	 opponentPoints;
-	 whoWasFastestEachRound = [];
+	 debug(`Client ${this.id} disconnected`);
+ 
+	 // TODO: reset everything and send both players to start-page
+	 resetting();
  
 	 // find the room that this socket is part of
 	 const room = playRooms.find(playroom => playroom.players.hasOwnProperty(this.id));
@@ -65,122 +88,205 @@
 		 return;
 	 }
  
+	 room.points = [];
+	 room.rounds = 0;
+	 room.time = [];
+	 
 	 // let everyone in the room know that this user has disconnected
 	 this.broadcast.to(room.id).emit('player:disconnected', room.players[this.id]);
+	 
+	 // TODO: remove user from list of users in that room
+	 // delete room.players[this.id];
+	 // delete room that player is in
+	 // delete room;
+	 // playRooms.splice(room, 1);
+	 room.points = [];
+	 room.rounds = 0;
+	 room.time = [];
+	 room.players = {};
+	 debug('after deleting the room they were in', playRooms);
  
-	 // remove user from list of users in that room
-	 delete room.players[this.id];
  
 	 // broadcast list of users in room to all connected sockets EXCEPT ourselves
-	 this.broadcast.to(room.id).emit('user:list', room.players);
+	 // this.broadcast.to(room.id).emit('user:list', room.players);
  };
  
  // Handle when a user has joined the chat
  const handlePlayerJoined = function(username, callback) {
+ 
+	 // check if there is a spot open for the player in a room
+	 let index = playRooms.findIndex(obj => {
+		 return Object.keys(obj.players).length < 2;
+	 });
+ 
+	 console.log('index:', index);
+	 // Object.keys(playRooms[(playRooms.length-1)].players).length === 2
+	 if(index === -1) {
+		 newObject.id = (playRooms.length);
+		 newObject.players = {};
+		 newObject.points = [];
+		 newObject.time = [];
+		 newObject.rounds = 0;
+		 playRooms.push(newObject);
+ 
+		 index = (playRooms.length-1);
+	 }
+	 
+	 debug(`User ${username} with socket id ${this.id} joins room '${playRooms[index].id}'`);
+
 	 // join room
-	 this.join(playRooms[0].id);
+	 this.join(playRooms[index].id);
 	 
 	 // b) add socket to room's `users` object
-	 let obj = playRooms[0].players;
+	 let obj = playRooms[index].players;
 	 obj[this.id] = username;
 	 
 	 // let everyone know that someone has connected to the chat
-	 this.broadcast.to(playRooms[0].id).emit('player:connected', username);
+	 this.broadcast.to(playRooms[findPlayersRoom(playRooms, this.id)].id).emit('player:connected', username);
 	 
 	 // confirm join
 	 callback({
 		 success: true,
-		 roomName: playRooms[0].name,
-		 players: playRooms[0].players
+		 id: playRooms[findPlayersRoom(playRooms, this.id)].id,
+		 players: playRooms[findPlayersRoom(playRooms, this.id)].players
 	 });
 	 
 	 // broadcast list of users in room to all connected sockets EXCEPT ourselves
-	 this.broadcast.to(playRooms[0].id).emit('player:list', playRooms[0].players);
+   
+	 this.broadcast.to(playRooms[findPlayersRoom(playRooms, this.id)].id).emit('player:list', playRooms[findPlayersRoom(playRooms, this.id)].players);
+ 
  };
  
  module.exports = function(socket, _io) {
-	  io = _io;
-  
-	  io.emit("new-connection", "A new user has connected");
-  
-	  socket.emit('player:connected', socket.id);
-  
-	  // handle user disconnect
-	  socket.on('disconnect', handleDisconnect);
-  
-	  // handle player joined
-	  socket.on('player:joined', handlePlayerJoined);
-
-	  socket.on('player:ready', ()=> {
+	 io = _io;
+ 
+	 debug('a new client has connected', socket.id);
+ 
+	 io.emit("new-connection", "A new user has connected");
+ 
+	 socket.emit('player:connected', socket.id);
+ 
+	 // handle user disconnect
+	 socket.on('disconnect', handleDisconnect);
+ 
+	 // handle player joined
+	 socket.on('player:joined', handlePlayerJoined);
+	 
+	 socket.on('player:ready', ()=> {
 		 ready.push(socket.id);
 		 
 		 if(ready.length === 2) {
 			 ready = [];
 
 			 // emit to clients in the room - start the game and hide waiting-page
-			 io.to(playRooms[0].id).emit('start:game');
-			 io.to(playRooms[0].id).emit('get:virus', delay);
+			 io.to(playRooms[findPlayersRoom(playRooms, socket.id)].id).emit('start:game');
+			 io.to(playRooms[findPlayersRoom(playRooms, socket.id)].id).emit('get:virus', delay);
 		 };
-	  });
+	 });
  
-	  socket.on('opponent:clicked', (reactionTime)=> {
-		 console.log(reactionTime);
-	  });
+	 socket.on('game:end', ()=> {
+		 io.to(playRooms[findPlayersRoom(playRooms, socket.id)].id).emit('end:game');
+	 });
  
-	  socket.on('game:end', ()=> {
-		 io.to(playRooms[0].id).emit('end:game');
-	  });
+	 socket.on('clicked:on:virus', (createdTime, clickedTime) => {
+		 // debug('listening to clicked:on:virus');
+		 // räkna ut reaktionstid
+		 let reactionTime = (clickedTime - createdTime) / 1000;
+		 // save reactionTime in playRooms, create a new object with socket.id as key and reactionTime as value
+		 let roomIndex = playRooms[findPlayersRoom(playRooms, socket.id)];
+		 // debug(roomIndex.points);
  
-	  socket.on('clicked:on:virus', (createdTime, clickedTime) => {
-		let reactionTime = (clickedTime - createdTime) / 1000;
-
-		ReacTimeObj[socket.id] = reactionTime;
-		
-		if(Object.keys(ReacTimeObj).length === 2) {
-			 whoWasFastestEachRound.push(Object.keys(ReacTimeObj)[0]);
+		 // save the reactionTimes in object
+		 newTimeObj = {}
+		 newTimeObj.playerSocketId = socket.id;
+		 newTimeObj.reacTime = reactionTime;
+		 roomIndex.time.push(newTimeObj);
  
-			 ownPoints = getAllIndexes(whoWasFastestEachRound, socket.id).length;
-			 
-			 opponentPoints = (whoWasFastestEachRound.length - ownPoints)
+		 if(roomIndex.time.length === 2) {
+			 // save who was the fastest and slowest
+			 let [fastestPlayer, fastestTime] = Object.values(roomIndex.time[0]);
+			 let [slowestPlayer, slowestTime] = Object.values(roomIndex.time[1]);
  
-			 const [firstReactionTime, secondReactionTime] = Object.values(ReacTimeObj);
+			 roomIndex.points.push(fastestPlayer);
  
-			 io.to(Object.keys(ReacTimeObj)[1]).emit('first:both:have:clicked:on:virus', ownPoints, opponentPoints, firstReactionTime, secondReactionTime)
-			}
-	  }); 
+			 // get how many points each player have and send it 
+			 let ownPoints = getAllIndexes(roomIndex.points, socket.id).length;
+			 let opponentPoints = (roomIndex.rounds + 1) - ownPoints;
  
-	socket.on('sending:back:points', (ownP, oppP, firstReactionTime, secondReactionTime)=> {
-		 io.to(Object.keys(ReacTimeObj)[0]).emit('second:both:have:clicked:on:virus', ownP, oppP, firstReactionTime, secondReactionTime)
-	});
+			 io.to(slowestPlayer).emit('first:both:have:clicked:on:virus', ownPoints, opponentPoints, fastestTime, slowestTime, fastestPlayer);
+ 
+			 // delete the reactionTime in object and create it again
+			 delete roomIndex.time;
+			 roomIndex.time = [];
+		 }
+	 }); 
+ 
+	 socket.on('sending:back:points', (ownP, oppP, firstReactionTime, secondReactionTime, fastestPlayer)=> {
+		 // ownP++;
+		 io.to(fastestPlayer).emit('second:both:have:clicked:on:virus', ownP, oppP, firstReactionTime, secondReactionTime)
+	 });
 	 
-	socket.on('both:points:updated', () => {
-		ReacTimeObj = {};
-		rounds++;
+	 socket.on('both:points:updated', (ownP) => {
+		 // debug('listening to both:points:updated');
  
-		if(rounds === 10) {
-			 // kolla vem som har flest poäng
-			 let ownPoints = getAllIndexes(whoWasFastestEachRound, socket.id).length;
-			 if(ownPoints === 5) {
-				 io.to(playRooms[0].id).emit('a:tie');
-			 } else if (ownPoints > 5) {
+		 let roomIndex = playRooms[findPlayersRoom(playRooms, socket.id)];
+		 roomIndex.rounds++;
+ 
+		 if(roomIndex.rounds === maxRounds) {
+			 // nollställ rounds och points
+			 // roomIndex.points = [];
+			 // roomIndex.rounds = 0;
+			 // roomIndex.time = [];
+ 
+			 // tell everyone who won
+			 if(ownP === maxRounds/2) {
+				 io.to(playRooms[findPlayersRoom(playRooms, socket.id)].id).emit('a:tie');
+ 
+				 // delete roomIndex;
+				 // playRooms.splice(roomIndex, 1);
+				 roomIndex.points = [];
+				 roomIndex.rounds = 0;
+				 roomIndex.time = [];
+				 roomIndex.players = {};
+				 debug('after deleting the room they were in', playRooms);
+				 return
+			 } else if (ownP > maxRounds/2) {
 				 io.to(socket.id).emit('i:won');
-				 socket.broadcast.to(playRooms[0].id).emit('you:lost');
+				 socket.broadcast.to(playRooms[findPlayersRoom(playRooms, socket.id)].id).emit('you:lost');
+ 
+				 // delete roomIndex;
+				 // playRooms.splice(roomIndex, 1);
+				 roomIndex.points = [];
+				 roomIndex.rounds = 0;
+				 roomIndex.time = [];
+				 roomIndex.players = {};
+				 debug('after deleting the room they were in', playRooms);
+				 return
 			 } else {
 				 io.to(socket.id).emit('i:lost');
-				 socket.broadcast.to(playRooms[0].id).emit('you:won');
+				 socket.broadcast.to(playRooms[findPlayersRoom(playRooms, socket.id)].id).emit('you:won');
+ 
+				 // delete roomIndex;
+				 // playRooms.splice(roomIndex, 1);
+				 roomIndex.points = [];
+				 roomIndex.rounds = 0;
+				 roomIndex.time = [];
+				 roomIndex.players = {};
+				 debug('after deleting the room they were in', playRooms);
+				 return
 			 }
 			 resetting();
+       
+			 // roomIndex.players = {};
 		 };
-		 io.to(playRooms[0].id).emit('points:updated:and:done');
+ 
+		 io.to(playRooms[findPlayersRoom(playRooms, socket.id)].id).emit('points:updated:and:done');
 	 });
-
-	socket.on('player:done', () => {
-		ownPoints;
-		opponentPoints;
-		whoWasFastestEachRound = [];
-		playersDone.push(socket.id);
-		if(playersDone.length === 2){
-			io.to(playRooms[0].id).emit('both:players:done'); 
-		};
-	});
-}	
+ 
+	 socket.on('player:done', () => {
+		 playersDone.push(socket.id);
+		 if(playersDone.length === 2){
+			 io.to(playRooms[findPlayersRoom(playRooms, socket.id)].id).emit('both:players:done');
+		 };
+	 });
+ }

@@ -24,10 +24,8 @@ let delay;
 let clickedTime;
 let reactionTime;
 let createdTime;
-
 let room = null;
 let username = null;
-
 let myPoints = 0;
 let opponentPoints = 0;
 
@@ -40,20 +38,6 @@ const getVirus = (d, rp) => {
 
         createdTime = Date.now();
     }, d);
-}
-
-const resetting = () => {
-    ready = [];
-    players = {};
-    delay;
-    clickedTime;
-    reactionTime;
-    createdTime;
-    room = null;
-    username = null;
-    // getVirus;
-    myPoints = 0;
-    opponentPoints = 0;
 }
 
 const addPlayerToWaitingList = text => {
@@ -75,9 +59,6 @@ const updatePlayersList = players => {
 socket.on('player:disconnected', (username) => {
     alert(`${username} disconnected 😢`);
     location.reload()
-
-    // reset variables and stuff
-    resetting();
 });
 
 // listen for when a new player connects to waitingroom
@@ -160,7 +141,6 @@ socket.on('second:both:have:clicked:on:virus', (oppP, ownP, firstReactionTime, s
     youScoreEl.innerText = firstReactionTime;
     player2ScoreEl.innerText = secondReactionTime;
     socket.emit('both:points:updated', ownP);
-
 });
 
 socket.on('points:updated:and:done', (delay, randomPosition) => {
@@ -170,30 +150,24 @@ socket.on('points:updated:and:done', (delay, randomPosition) => {
 socket.on('a:tie', () => {
     alert('Game over! It was a tie');
     location.reload();
-    resetting();
 });
 
 socket.on('i:won', () => {
     alert('You won!');
     location.reload();
-    resetting();
 });
 
 socket.on('you:lost', () => {
     alert('You lost!');
     location.reload();
-    resetting();
 });
 
 socket.on('i:lost', () => {
     alert('You lost!');
     location.reload();
-    resetting();
-
 });
 
 socket.on('you:won', () => {
     alert('You won!');
     location.reload();
-    resetting();
 });

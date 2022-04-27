@@ -51,16 +51,14 @@ const resetting = () => {
     createdTime;
     room = null;
     username = null;
-    getVirus;
+    // getVirus;
     myPoints = 0;
     opponentPoints = 0;
 }
 
 const addPlayerToWaitingList = text => {
     const liEl = document.createElement('li');
-
     liEl.innerText = text;
-
     ulWaitingListEl.appendChild(liEl);
 };
 

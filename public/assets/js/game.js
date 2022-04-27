@@ -58,9 +58,7 @@ const resetting = () => {
 
 const addPlayerToWaitingList = text => {
     const liEl = document.createElement('li');
-
     liEl.innerText = text;
-
     ulWaitingListEl.appendChild(liEl);
 };
 

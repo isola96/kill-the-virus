@@ -3,6 +3,7 @@
 */
 
 const debug = require('debug')('game:socket_controller');
+
 let io = null; // socket io server instance
 
 // list of rooms and their connected users 
@@ -16,13 +17,14 @@ let playRooms = [
 	}
 ];
 
-const maxRounds = 4;
+const maxRounds = 10;
 let ownPoints = 0;
 let opponentPoints = 0;
 let ready = [];
 let playersDone = [];
 let ReacTimeObj = {};
 let whoWasFastestEachRound = [];
+
 // let rounds = 0;
 let delay;
 let randomPosition
@@ -70,6 +72,7 @@ return randomPosition
 };
 getRandomPosition();
 
+
 const getAllIndexes = (arr, val) => {
 	let indexes = [];
 	for(let i=0; i< arr.length; i++)
@@ -83,6 +86,7 @@ const handleDisconnect = function() {
 	debug(`Client ${this.id} disconnected`);
 
 	// TODO: reset everything and send both players to start-page
+
 	resetting();
 
 	// find the room that this socket is part of
@@ -111,9 +115,9 @@ const handleDisconnect = function() {
 	room.players = {};
 	debug('after deleting the room they were in', playRooms);
 
-
 	// broadcast list of users in room to all connected sockets EXCEPT ourselves
 	// this.broadcast.to(room.id).emit('user:list', room.players);
+
 };
 
 // Handle when a user has joined the chat
@@ -125,7 +129,9 @@ const handlePlayerJoined = function(username, callback) {
 	});
 
 	console.log('index:', index);
+
 	// Object.keys(playRooms[(playRooms.length-1)].players).length === 2
+
 	if(index === -1) {
 		newObject.id = (playRooms.length);
 		newObject.players = {};
@@ -137,12 +143,14 @@ const handlePlayerJoined = function(username, callback) {
 		index = (playRooms.length-1);
 	}
 	
+
 	debug(`User ${username} with socket id ${this.id} joins room '${playRooms[index].id}'`);
 
 	// join room
 	this.join(playRooms[index].id);
 	
 	// b) add socket to room's `users` object
+
 	let obj = playRooms[index].players;
 	obj[this.id] = username;
 	
@@ -183,6 +191,7 @@ module.exports = function(socket, _io) {
 		if(ready.length === 2) {
 		ready = [];
 		const playerUsernames = playRooms[findPlayersRoom(playRooms, socket.id)].players;
+
 		console.log(playerUsernames);
 
 		randomSeconds();
@@ -192,6 +201,7 @@ module.exports = function(socket, _io) {
 		io.to(playRooms[findPlayersRoom(playRooms, socket.id)].id).emit('start:game', playerUsernames);
 		TODO:
 		io.to(playRooms[findPlayersRoom(playRooms, socket.id)].id).emit('get:virus', delay, randomPosition);
+
 		};
 	});
 
@@ -233,6 +243,7 @@ module.exports = function(socket, _io) {
 	}); 
 
 	socket.on('sending:back:points', (ownP, oppP, firstReactionTime, secondReactionTime, fastestPlayer)=> {
+
 		// ownP++;
 		io.to(fastestPlayer).emit('second:both:have:clicked:on:virus', ownP, oppP, firstReactionTime, secondReactionTime)
 	});
@@ -244,6 +255,7 @@ module.exports = function(socket, _io) {
 		roomIndex.rounds++;
 
 		if(roomIndex.rounds === maxRounds) {
+
 			// nollställ rounds och points
 			// roomIndex.points = [];
 			// roomIndex.rounds = 0;
@@ -255,11 +267,14 @@ module.exports = function(socket, _io) {
 
 				// delete roomIndex;
 				// playRooms.splice(roomIndex, 1);
+
 				roomIndex.points = [];
 				roomIndex.rounds = 0;
 				roomIndex.time = [];
 				roomIndex.players = {};
+
 				debug('after deleting the room they were in', playRooms);
+
 				return
 			} else if (ownP > maxRounds/2) {
 				io.to(socket.id).emit('i:won');
@@ -267,22 +282,28 @@ module.exports = function(socket, _io) {
 
 				// delete roomIndex;
 				// playRooms.splice(roomIndex, 1);
+
 				roomIndex.points = [];
 				roomIndex.rounds = 0;
 				roomIndex.time = [];
 				roomIndex.players = {};
+
 				debug('after deleting the room they were in', playRooms);
+
 				return
 			} else {
 				io.to(socket.id).emit('i:lost');
 				socket.broadcast.to(playRooms[findPlayersRoom(playRooms, socket.id)].id).emit('you:won');
 
+
 				// delete roomIndex;
 				// playRooms.splice(roomIndex, 1);
+
 				roomIndex.points = [];
 				roomIndex.rounds = 0;
 				roomIndex.time = [];
 				roomIndex.players = {};
+
 				debug('after deleting the room they were in', playRooms);
 				return
 			}
@@ -295,6 +316,7 @@ module.exports = function(socket, _io) {
 		getRandomPosition();
 
 		io.to(playRooms[findPlayersRoom(playRooms, socket.id)].id).emit('points:updated:and:done', delay, randomPosition);
+
 	});
 
 	socket.on('player:done', () => {
